@@ -1,0 +1,148 @@
+---
+title: "Atlantic Storm Visualisation"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+## Introduction
+
+This document contains my solutions to the exercises as presented in https://www.r-bloggers.com/specialize-in-geo-spatial-visualizations-with-leaflet-part-2-exercises/.
+
+First we need to load the **leaflet** package and the dataset **atlStorms2005**.
+
+```{r load}
+library(tidyverse)
+library(leaflet)
+library(htmltools)
+
+data = leaflet::atlStorms2005
+```
+
+## Exercise 1
+
+Set the default view to longitude -47.4, latitude 39.75 and zoom level 3.
+In addition, add a button that will scale back to the default view upon clicking it.
+Hint: use the `icon()` function from the shiny package to easily render an icon of your choice for the button.
+
+### Solution
+
+```{r exercise1}
+map = data %>%
+  leaflet() %>%
+  setView(lng = -47.4,
+          lat = 39.75,
+          zoom = 3) %>%
+  addTiles()
+
+map
+```
+
+## Exercise 2
+
+Add the lines that represent the storms traces to the map.
+
+### Solution
+
+```{r exercise2}
+map %>%
+  addPolylines()
+```
+
+## Exercise 3
+
+Color each line according to the storm max wind.
+
+### Solution
+
+```{r exercise3}
+# Create colour palette based on MaxWind variable
+pal = colorNumeric(palette="Oranges", domain=data$MaxWind)
+
+map %>%
+  addPolylines(color=~pal(MaxWind))
+```
+
+## Exercise 4
+
+Add a legend to the colors you just added.
+
+### Solution
+
+```{r exercise4}
+map %>%
+  addPolylines(color=~pal(MaxWind)) %>%
+  addLegend("topright", pal = pal, values = ~MaxWind,
+    title = "Maximum Wind Speed",
+    labFormat = labelFormat(suffix = " mph"),
+    opacity = 1)
+```
+
+## Exercise 5
+
+Upon hovering over a line, change its weight to 10.
+
+### Solution
+
+```{r exercise5}
+map %>%
+  addPolylines(color=~pal(MaxWind),
+               highlightOptions=highlightOptions(weight=10)) %>%
+  addLegend("topright", pal=pal, values=~MaxWind, title="Maximum Wind Speed",
+    labFormat=labelFormat(suffix=" mph"), opacity=1)
+```
+
+## Exercise 6
+
+Upon hovering over a line, show a label with the storm name.
+
+### Solution
+
+```{r exercise6}
+map %>%
+  addPolylines(color=~pal(MaxWind),
+               highlightOptions=highlightOptions(weight=10),
+               label=~htmlEscape(Name)) %>%
+  addLegend("topright", pal=pal, values=~MaxWind, title="Maximum Wind Speed",
+    labFormat=labelFormat(suffix=" mph"), opacity=1)
+```
+
+## Exercise 7
+
+Upon clicking a line, show a pop-up with the storm minimum pressure.
+
+### Solution
+
+```{r exercise7}
+map %>%
+  addPolylines(color=~pal(MaxWind),
+               highlightOptions=highlightOptions(weight=10),
+               label=~htmlEscape(Name),
+               popup=~htmlEscape(MinPress)) %>%
+  addLegend("topright", pal=pal, values=~MaxWind, title="Maximum Wind Speed",
+    labFormat=labelFormat(suffix=" mph"), opacity=1)
+```
+
+## Exercise 8
+
+Save your leaflet map as an HTML file.
+Hint: use `htmlwidgets::save()`.
+
+### Solution
+
+```{r exercise8}
+library(htmlwidgets)
+
+# Below we find the final map
+final_map = map %>%
+  addPolylines(color=~pal(MaxWind),
+               highlightOptions=highlightOptions(weight=10),
+               label=~htmlEscape(Name),
+               popup=~htmlEscape(MinPress)) %>%
+  addLegend("topright", pal=pal, values=~MaxWind, title="Maximum Wind Speed",
+    labFormat=labelFormat(suffix=" mph"), opacity=1)
+
+htmlwidgets::saveWidget(final_map, "map.html")
+```
